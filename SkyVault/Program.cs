@@ -3,6 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Azure;
+using Application.Dto;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +17,17 @@ builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
+
+builder.Services.AddDbContext<DataContext>(opt =>
+{
+    CosmosDbCredentialsDto config = builder.Configuration.GetSection("CosmosDb").Get<CosmosDbCredentialsDto>();
+
+    opt.UseCosmos(
+        config.AccountEndPoint,
+        config.AccountKey,
+        config.DatabaseName
+        );
+});
 
 var app = builder.Build();
 
