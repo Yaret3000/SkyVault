@@ -31,10 +31,10 @@ namespace Application.Services.Storage
         /// <param name="claimsPrincipal">Current sesion claims</param>
         public AzureBlobService(ClaimsPrincipal claimsPrincipal)
         {
-            ConnectContainerClient();
             _claimsPrincipal = claimsPrincipal;
             _userKey = claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == _claimKey)?.Value;
             _userRoute = string.Concat(_userKey, @"\");
+            ConnectContainerClient();
         }
 
         /// <summary>
@@ -47,22 +47,31 @@ namespace Application.Services.Storage
         }
 
         /// <inheritdoc />
-        public async void DeleteFile(string fileName)
+        public  void DeleteFile(string fileName)
         {
-            await _containerClient.DeleteBlobAsync(string.Concat(_userRoute, fileName));
+             _containerClient.DeleteBlob(string.Concat(_userRoute, fileName));
         }
 
         /// <inheritdoc />
-        public async Task<Stream> DownloadFile(string fileName)
+        public Stream DownloadFile(string fileName)
         {
-            Response<BlobDownloadResult> downloadResult = await _containerClient.GetBlobClient(string.Concat(_userRoute, fileName)).DownloadContentAsync();
+            Response<BlobDownloadResult> downloadResult = _containerClient.GetBlobClient(string.Concat(_userRoute, fileName)).DownloadContent();
             return downloadResult.Value.Content.ToStream();
         }
 
         /// <inheritdoc />
-        public async void UploadFile(string fileName, MemoryStream memoryStream, string description = default)
+        public void UploadFile(string fileName, Stream streamFile)
         {
-            await _containerClient.UploadBlobAsync(string.Concat(_userRoute, fileName), memoryStream);
+            _containerClient.UploadBlob(string.Concat(_userRoute, fileName), streamFile);
+        }
+
+        /// <summary>
+        /// Check if a blob exists
+        /// </summary>
+        /// <param name="fileName">Blob to check</param>
+        public bool ExistsFile(string fileName) 
+        {
+            return _containerClient.GetBlobClient(string.Concat(_userRoute, fileName)).Exists();
         }
     }
 }
