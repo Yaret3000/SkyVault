@@ -18,6 +18,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages()
     .AddMicrosoftIdentityUI();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddDbContext<DataContext>(opt =>
 {
     CosmosDbCredentialsDto config = builder.Configuration.GetSection("CosmosDb").Get<CosmosDbCredentialsDto>();

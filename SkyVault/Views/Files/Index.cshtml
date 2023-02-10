@@ -1,0 +1,86 @@
+﻿@model IEnumerable<Model.FileMetadata>
+
+@{
+    ViewData["Title"] = "Storage";
+}
+
+<h2>Personal storage</h2>
+<p>Total files: @Model.Count()</p>
+
+<button type="button" class="btn btn-primary float-end" data-bs-toggle="modal" data-bs-target="#UploadFileModal">
+   Upload new file
+</button>
+
+
+
+
+<div class="modal fade" id="UploadFileModal" tabindex="-1" aria-labelledby="UploadFileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="UploadFileModalLabel">Upload new file</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="mb-3 mt-3">
+                        <form method="post" action="@Url.Action("Upload", "Files")" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <input type="file" name="file" class="form-control" style="margin-bottom:10px" required/>
+                                <input type="text" name="description" class="form-control" placeholder="File description" required/>
+                            </div>
+                            <div class="mb-3">
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                File name
+            </th>
+            <th>
+                Size(Mb)
+            </th>
+            <th>
+                Creation
+            </th>
+            <th>
+                Description
+            </th>
+            <th>
+                Actions
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.FileName)
+            </td>
+            <td>
+                @(Math.Round((Convert.ToDecimal(item.Size) / 1000000), 2))
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreationDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                    <a download class="alert-success" asp-controller="Files" asp-action="Download" asp-route-id=@item.Id>Download</a> |
+                    <a class="alert-danger" asp-controller="Files" asp-action="Delete" asp-route-id=@item.Id>Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
