@@ -14,47 +14,38 @@ namespace Application.Services.Storage
     /// </summary>
     public class AzureBlobService : IStorageService
     {
-        #region PrivateVariables
-
-        private BlobContainerClient _containerClient;
-        private ClaimsPrincipal _claimsPrincipal;
-        private string _userKey;
-        private string _userRoute;
-
-        private const string _claimKey = "emails";
+        #region PublicProps
+        public string UserKey { get; set ; }
 
         #endregion
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="claimsPrincipal">Current sesion claims</param>
-        public AzureBlobService(ClaimsPrincipal claimsPrincipal)
-        {
-            _claimsPrincipal = claimsPrincipal;
-            _userKey = claimsPrincipal.Claims.FirstOrDefault(claim => claim.Type == _claimKey)?.Value;
-            _userRoute = string.Concat(_userKey, @"\");
-            ConnectContainerClient();
-        }
+        #region PrivateVariables
 
-        /// <summary>
-        /// Init Azure blob connection
-        /// </summary>
-        public void ConnectContainerClient() 
+        private readonly BlobServiceClient _blobServiceClient;
+        private BlobContainerClient _containerClient;
+        
+        private string _userRoute => string.Concat(UserKey, @"\");
+
+        public AzureBlobService(BlobServiceClient blobServiceClient)
         {
             AzureBlobCredentialsDto appSettingDto = JsonHelper.ReadJsonFile<AzureBlobCredentialsDto>(FilesConstants.JsonConfig);
-            _containerClient = new BlobContainerClient(appSettingDto.AzureBlobConf.ConnectionString, appSettingDto.AzureBlobConf.ContainerName);
+            _blobServiceClient = blobServiceClient;
+            _containerClient = _blobServiceClient.GetBlobContainerClient(appSettingDto.AzureBlobConf.ContainerName);
         }
+
+        #endregion
 
         /// <inheritdoc />
         public  void DeleteFile(string fileName)
         {
+            CheckUserKey();
              _containerClient.DeleteBlob(string.Concat(_userRoute, fileName));
         }
 
         /// <inheritdoc />
         public Stream DownloadFile(string fileName)
         {
+            CheckUserKey();
             Response<BlobDownloadResult> downloadResult = _containerClient.GetBlobClient(string.Concat(_userRoute, fileName)).DownloadContent();
             return downloadResult.Value.Content.ToStream();
         }
@@ -62,6 +53,7 @@ namespace Application.Services.Storage
         /// <inheritdoc />
         public void UploadFile(string fileName, Stream streamFile)
         {
+            CheckUserKey();
             _containerClient.UploadBlob(string.Concat(_userRoute, fileName), streamFile);
         }
 
@@ -71,7 +63,18 @@ namespace Application.Services.Storage
         /// <param name="fileName">Blob to check</param>
         public bool ExistsFile(string fileName) 
         {
+            CheckUserKey();
             return _containerClient.GetBlobClient(string.Concat(_userRoute, fileName)).Exists();
+        }
+
+        /// <summary>
+        /// Check if the user key is defined
+        /// </summary>
+        /// <exception cref="Exception">Exception if userkey is not defined</exception>
+        public void CheckUserKey() 
+        {
+            if (string.IsNullOrEmpty(UserKey))
+                throw new Exception("UserKey is not defined");
         }
     }
 }

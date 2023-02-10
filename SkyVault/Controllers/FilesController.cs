@@ -1,5 +1,6 @@
 ﻿using Application.Repositories;
 using Application.Services.Storage;
+using Application.Services.Storage.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,19 +22,20 @@ namespace SkyVault.Controllers
     {
         private DataContext _dataContext;
         private FileMetadataRepository _fileMetadataRepository;
-        private AzureBlobService _azureBlobService;
+        private IStorageService _storageService;
 
         /// <summary>
         /// Unique user key (Can be: username, email, etc...)
         /// </summary>
         private string _userKey;
 
-        public FilesController(DataContext dataContext, IHttpContextAccessor contextAccessor)
+        public FilesController(DataContext dataContext, IStorageService storageService, IHttpContextAccessor contextAccessor)
         {
             _userKey = contextAccessor.HttpContext.User.Claims.FirstOrDefault(claim => claim.Type == "emails").Value;
             _dataContext = dataContext;
             _fileMetadataRepository = new FileMetadataRepository(dataContext);
-            _azureBlobService = new AzureBlobService(contextAccessor.HttpContext.User);
+            _storageService = storageService;
+            _storageService.UserKey = _userKey;
         }
 
         /// <summary>
@@ -79,7 +81,7 @@ namespace SkyVault.Controllers
                     OwnerKey = _userKey
                 };
 
-                _azureBlobService.UploadFile(fullNameStorage, file.OpenReadStream());
+                _storageService.UploadFile(fullNameStorage, file.OpenReadStream());
                 _fileMetadataRepository.Add(fileMetadata);
                 _fileMetadataRepository.Save();
 
@@ -104,7 +106,7 @@ namespace SkyVault.Controllers
                 if (fileMetadata == null)
                     RedirectToAction(nameof(Index));
 
-                Stream downloadedFile = _azureBlobService.DownloadFile(fileMetadata.FullNameStorage);
+                Stream downloadedFile = _storageService.DownloadFile(fileMetadata.FullNameStorage);
                 return File(downloadedFile, fileMetadata.ContentType, fileDownloadName: fileMetadata.FileName);
             }
             catch (Exception ex)
@@ -122,7 +124,7 @@ namespace SkyVault.Controllers
             try
             {
                 FileMetadata fileMetadata = _fileMetadataRepository.FirstOrDefault(file => file.Id == id);
-                _azureBlobService.DeleteFile(fileMetadata.FullNameStorage);
+                _storageService.DeleteFile(fileMetadata.FullNameStorage);
                 _fileMetadataRepository.Delete(fileMetadata);
                 _fileMetadataRepository.Save();
                 return RedirectToAction(nameof(Index));

@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Azure;
 using Application.Dto;
+using Azure.Storage.Blobs;
+using Application.Services.Storage.Interfaces;
+using Application.Services.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,11 @@ builder.Services.AddDbContext<DataContext>(opt =>
         config.DatabaseName
         );
 });
+
+builder.Services.AddScoped(_ => { 
+    return new BlobServiceClient(builder.Configuration.Get<AzureBlobCredentialsDto>().AzureBlobConf.ConnectionString);
+});
+builder.Services.AddScoped<IStorageService, AzureBlobService>();
 
 var app = builder.Build();
 

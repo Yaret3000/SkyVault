@@ -6,6 +6,11 @@
     public interface IStorageService
     {
         /// <summary>
+        /// Unique user key (email, nickname, etc...)
+        /// </summary>
+        string UserKey { get; set; }
+
+        /// <summary>
         /// Method for uploading files
         /// </summary>
         /// <param name="fileName">Physical file name</param>
