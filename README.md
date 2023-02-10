@@ -4,7 +4,7 @@ SkyVault is a cloud storage application where users can securely store their val
 
 ## Demo
 
-![](https://github.com/Yaret3000/SkyVault/tree/main/_Media/SkyVaultDemo.gif)
+![](https://github.com/Yaret3000/SkyVault/blob/main/_Media/SkyVaultDemo.gif)
 
 ## Technical Details
 
@@ -58,7 +58,7 @@ To run SkyVault in your device, you will need the following software:
 4. In the terminal, run the command "dotnet run" to start the application.
 5. The application should now be running in your local development environment.
 
-### 3. Appsetting JSON Configuration
+### 3. Appsettings JSON Configuration
 
 SkyVault uses Azure services, so setup these services in your Azure directory and then configure the keys, urls and connection strings in the "appsettings.json" file.
 
