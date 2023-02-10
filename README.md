@@ -72,4 +72,4 @@ AppSetting sections:
 
 ## Conclusion
 
-SkyVault is a secure and convenient cloud storage solution that makes it easy for users to store, access, and share their valuable files. With its integration with Azure
+SkyVault is a secure and convenient cloud storage solution that makes it easy for users to store and access their valuable files. With its integration with Azure
